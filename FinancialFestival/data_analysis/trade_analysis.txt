@@ -1,0 +1,49 @@
+trade_train analysis
+
+columns : ['Unnamed: 0', '기준년월', '그룹번호', '그룹내고객수', '종목번호', '그룹내_매수여부', '그룹내_매도여부','매수고객수', '매도고객수', '평균매수수량', '평균매도수량', '매수가격_중앙값', '매도가격_중앙값']
+
+<col[0]:index>
+0-30199
+
+<col[1]: 기준연월, date>
+12 types, 201907-202006
+
+<col[2]: 그룹번호, group_idx>
+48 types, MAD01-MAD48
+
+<col[3]: 그룹내고객수, group_size>
+47 types, matched with group_idx
+
+<col[4]: 종목번호, stock_idx>
+1066types, e.g.A33637K
+Start with 'A", 6num or alphabet
+
+<col[5]: 그룹내_매수여부, if_buy>
+2 types, (Y,N) = (29486, 714)
+
+<col[6]: 그룹내_매도여부, if_sell>
+2 types, (Y,N) = (29653, 547)
+
+<col[7]: 매수고객수, buy_num>
+0-865, 그룹내 종목을 매수한 고객의 수
+
+<col[8]: 매도고객수, sell_num>
+0-597, 그룹내 종목을 매도한 고객의 수
+
+<col[9]: 평균매수수량, buy_avg_amount>
+0-364982, 0:724
+
+<col[10]: 평균매도수량, sell_avg_amount>
+0-364982, 0:550
+
+<col[11]: 매수가격_중앙값, buy_price_med>
+-1-1435057, -1:714
+
+<col[12]: 매도가격_중앙값, sell_price_med>
+-1-1436000, -1: 547
+
+<trade_pre>
+column : [
+
+<group>
+column : ['idx', 'size']
