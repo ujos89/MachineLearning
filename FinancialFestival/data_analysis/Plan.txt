@@ -11,7 +11,7 @@ idea- > 그룹별로 각각 모델을 적용시키자, data의 수가 많지않�
 2) NEWDATA SET
 prediction를 하기 위해서 stocks의 column 만으로 train_se을 만들자
 e.g. train_MAD01
-rows : 종목번호 (stock_idx)
+rows : 종목번호 (stock_idx)`
 columns : []:
 
 
@@ -21,7 +21,7 @@ columns : []:
 <col[1]: date> // stocks_기준일자(col[1])
 날짜의 연속성이 영향을 미칠것인가? 그전날 다음날이 의미있을수 있다. 걍 달별로 때려박자
 20190701 => 0
-날짜 지날때마다 1씩 추가
+날짜 지날때마다 1씩 추
 
 <col[2]: kospi> // stocks_시장구분(col[5])
 kospi:1, kosdaq:0
@@ -34,8 +34,8 @@ one-hot coding
 <col[6]: price_low2high> // stocks_종목저가-종목고가(col[11]-col[10])
 scaling: (high-low)/low
 
-<col[7]: price_start2finish> // stocks_종목종가-종목시가(col[12]-col[9])
-scaling: (finish-start)/start
+<col[7]: price_start2end> // stocks_종목종가-종목시가(col[12]-col[9])
+scaling: (end-start)/start
 
 <col[8]: trade_volume> // stocks_거래량(col[13])
 standard_scaler
@@ -54,6 +54,7 @@ prediction -> stocks 7월 ()
 option1) standard scaler를 활용해서 0,0,0,0 으로 predict
 option2) 7월 stocks data를 크롤링해서 predict
 -> assume, 매수 수량 및 가격은 필요없음. 얼마나 많은 고객이 매수할껀지를 확인하는 과정
+-> crawling 필요없음 test data까지있음
 
 3) Train, Test set split
 cv하기 위한 준비, cv
@@ -64,3 +65,10 @@ cv하기 위한 준비, cv
 5) Model training, choose by cv
 
 6) Prediction futrue data
+
+
+
+====20.09.30=====
+크롤링 -> stock_code가 주어진 상황에서 종목저가, 종목고가, 종목종가, 거래량, 거래금액_만원단위
+
+

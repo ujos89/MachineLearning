@@ -5,7 +5,7 @@ columns : ['Unnamed: 0', '기준년월', '그룹번호', '그룹내고객수', '
 <col[0]:index>
 0-30199
 
-<col[1]: 기준연월, date>
+<col[1]: 기준년월, date>
 12 types, 201907-202006
 
 <col[2]: 그룹번호, group_idx>
@@ -14,7 +14,7 @@ columns : ['Unnamed: 0', '기준년월', '그룹번호', '그룹내고객수', '
 <col[3]: 그룹내고객수, group_size>
 47 types, matched with group_idx
 
-<col[4]: 종목번호, stock_idx>
+<col[4]: 종목번호, stock_code>
 1066types, e.g.A33637K
 Start with 'A", 6num or alphabet
 
