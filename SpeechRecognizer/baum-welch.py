@@ -77,4 +77,45 @@ def backward(data, transp, theta):
 
 phone_seq0, transp0, theta0 = build_utterancehmm(trn[0], phone_list, phone)
 #print(forward(readdata(trn[0]), transp0, theta0))
-print(backward(readdata(trn[0]), transp0, theta0))
+#print(backward(readdata(trn[0]), transp0, theta0))
+print(len(theta0[0]))
+
+def accumulate(data, transp, theta):
+    alpha, p = forward(data, transp, theta)
+    beta = backward(data, transp, theta)
+
+    time_num = data.shape[0]
+    state_num = len(theta)
+    #assume that pdf_num is same for each states
+    pdf_num = len(theta[0])
+    transp_ = np.zeros((state_num+2, state_num+2))
+    mu_ = [[np.zeros(39) for _ in range(pdf_num)] for _ in range(state_num)]
+    sigma_ = [[np.zeros(39) for _ in range(pdf_num)] for _ in range(state_num)]
+    gamma = np.zeros((state_num,pdf_num+1))
+    
+    for time_idx in range(time_num):
+        for state_idxi in range(state_num):
+            gamma_tmp0 = alpha[state_idxi][time_idx]+beta[state_idxi][time_idx]-p
+            gamma[state_idxi][0] += np.exp(gamma_tmp0)
+            if(time_idx == 0):
+                transp_[0][state_idxi+1] += np.exp(gamma_tmp0)
+            elif(time_idx != time_num-1):
+                for state_idxj in range(state_num):
+                    xi_tmp = alpha[state_idxi][time_idx] + transp[state_idxi+1][state_idxj] + obsp_i(data[time_idx+1], theta[state_idxj]) + beta[state_idxj][time_idx+1] - p
+                    transp_[state_idxi+1][state_idxj+1] += np.exp(xi_tmp)
+            for pdf_idx in range(1,pdf_num+1):
+                theta_tmp = []
+                w = theta[pdf_idx][0]
+                mu = theta[pdf_idx][1]
+                sigma = theta[pdf_idx][2]
+                x = data[time_idx]
+                obsp_ik = np.log(w)-np.log(((2*math.pi)**(39/2))*(np.prod(sigma)**0.5))-0.5*np.sum((x-mu)**2/sigma)
+                
+                gamma_tmp = np.exp(gamma_tmp0 + w + obsp_ik - obsp_i(data[time_idx], theta[state_idxi]))
+                gamma[state_idxi][pdf_idx] += gamma_tmp
+                mu_[state_idx][pdf_idx-1] += gamma_tmp*data[time_idx]
+                sigma_[state_idx][pdf_idx-1] += gamma_tmp*(data[time_idx]**2)
+    
+    return transp_, mu_, sigma_, gamma
+
+#need to verify accumulate
