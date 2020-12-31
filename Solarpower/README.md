@@ -21,8 +21,8 @@
 
 
 ## Step3. Predict target
-**Generation(kW)**
-> ****:<br>
+**Target to be predicted**
+> **Generation(kW)**  : Solar power generation<br>
 
 **Supervised Learning**
 > **Neural Network**<br>
