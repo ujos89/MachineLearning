@@ -7,16 +7,16 @@
 
 
 ## Step2. Predict 5 elements
-- BPTT(Backpropagation Through Time)
-- LSTM(Long Short-Term Memory)
-- GRU(Gated Recurrent Units)
-Sequential Model
+**RNN(Recurent Neural Network)**
+> BPTT(Backpropagation Through Time)
+> LSTM(Long Short-Term Memory)
+> GRU(Gated Recurrent Units)
+
 
 ## Step3. Predict target
-- Regression
-- Decision Tree
-- k-NN
-- etc.
+**Supervised Learning**
+> Neural Network
+> KNN(K Nearest Neighbor)
 
 ## Step4. Analysis
 - 
