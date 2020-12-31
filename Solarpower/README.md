@@ -8,11 +8,11 @@
 
 ## Step2. Predict 5 elements
 **Elements to be predicted**
-> **DHI(W/m<sup>2</sup>)**<t>: Diffuse Horizontal Irradiance<br>
-> **DNI(W/m<sup>2</sup>)**<t>: Direct Normal Irradiance<br>
-> **WS(m/s)**<t>: Wind Speed<br>
-> **RH(%)**<t>: Relative Humidity<br>
-> **T(<sup>o</sup>C)**<t>: Temperature<br>
+> **DHI(W/m<sup>2</sup>)**  : Diffuse Horizontal Irradiance<br>
+> **DNI(W/m<sup>2</sup>)**  : Direct Normal Irradiance<br>
+> **WS(m/s)** : Wind Speed<br>
+> **RH(%)** : Relative Humidity<br>
+> **T(<sup>o</sup>C)**  : Temperature<br>
 
 **RNN(Recurent Neural Network)**
 > **BPTT(Backpropagation Through Time)**<br>
