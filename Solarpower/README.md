@@ -7,6 +7,13 @@
 
 
 ## Step2. Predict 5 elements
+**Elements**
+> **DHI**: Diffuse Horizontal Irradiance<br>
+> **DNI**: Direct Normal Irradiance<br>
+> **WS**: Wind Speed<br>
+> **RH**: Relative Humidity<br>
+> **T**: Temperature<br>
+
 **RNN(Recurent Neural Network)**
 > **BPTT(Backpropagation Through Time)**<br>
 > **LSTM(Long Short-Term Memory)**<br>
