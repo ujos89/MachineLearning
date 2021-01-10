@@ -14,11 +14,8 @@
 > **RH(%)** : Relative Humidity<br>
 > **T(<sup>o</sup>C)**  : Temperature<br>
 
-**RNN(Recurent Neural Network)**
-> **BPTT(Backpropagation Through Time)**<br>
-> **LSTM(Long Short-Term Memory)**<br>
-> **GRU(Gated Recurrent Units)**<br>
-
+- BPTT(Backpropagation Through Time) => WS, RH, T
+- Sunrise Time, Sunset Time & BPTT => DHI, DNI
 
 ## Step3. Predict target
 **Target to be predicted**
