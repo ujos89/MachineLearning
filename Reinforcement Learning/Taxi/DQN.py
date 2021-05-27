@@ -5,6 +5,7 @@ https://github.com/openai/gym/blob/master/gym/envs/toy_text/taxi.py
 
 DQN:
 https://tutorials.pytorch.kr/intermediate/reinforcement_q_learning.html
+https://wwiiiii.tistory.com/entry/Deep-Q-Network
 
 Git repos:
 https://github.com/gandroz/rl-taxi/blob/main/pytorch/taxi_demo_pytorch.ipynb
@@ -38,9 +39,7 @@ EPISODES = 15000
 MEMORY_SIZE = 50000
 
 # Optimize the following parameters:
-EPSILON=1.0  # this is the "initial" Epsilon. 
-             # So do NOT change this initial value, 
-             # but later, it is better to decrease it in the training process.
+EPSILON=1.0
 
 ### we intentionally changed the following parameters away from their optimized values.
 ### Hence, you MUST optimize the following parameters in your way
@@ -85,7 +84,7 @@ class DQN(nn.Module):
         
         return x
     
-    
+
 class Memory():
     def __init__(self):
         self.memory = deque(maxlen=MEMORY_SIZE)
@@ -105,19 +104,17 @@ class Memory():
             nextState_list.append(next_state)
             done_list.append([done])
             
-        return torch.tensor(state_list, dtype=torch.float), \
-                torch.tensor(action_list), \
-                torch.tensor(reward_list), \
-                torch.tensor(nextState_list, dtype=torch.float), \
-                torch.tensor(done_list)
+        return torch.tensor(state_list, dtype=torch.float, device = device), \
+                torch.tensor(action_list, device = device), \
+                torch.tensor(reward_list, device = device), \
+                torch.tensor(nextState_list, dtype=torch.float, device=device), \
+                torch.tensor(done_list, device = device)
     
     def size(self):
         return len(self.memory)
     
     
 def epsilon_greedy(q_function, epsilon):
-    print(np.argmax(q_function.detach().numpy()))
-    
     if random.random() > epsilon: # greedy
         return np.argmax(q_function.detach().numpy())
     else:
@@ -126,84 +123,104 @@ def epsilon_greedy(q_function, epsilon):
 def training(current_dqn, target_dqn, replay_memory, optimizer, gamma, batch_size):
     state, action ,reward, next_state, done = replay_memory.sample(batch_size)
 
-    
-    ##########################
-    ### fill this function ###
-    ##########################
+    # Q(s_t, a)
+    state_action_values = current_dqn(state).gather(1, action)
+    # if episode terminates at next step, expected_state_action_values become reward
+    next_state_values = target_dqn(next_state).max(1)[0].unsqueeze(1) * (~done).int()
+    expected_state_action_values = reward + (GAMMA * next_state_values)
 
-current_dqn = DQN()
-target_dqn = DQN()
+    # Huber loss compute
+    loss = F.smooth_l1_loss(state_action_values, expected_state_action_values)
+
+    #model optimize
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+current_dqn = DQN().to(device)
+target_dqn = DQN().to(device)
 target_dqn.load_state_dict(current_dqn.state_dict())
 replay_memory = Memory()
 optimizer_adam = optim.Adam(current_dqn.parameters(), lr=LEARNING_RATE)
-t = 0
-epi_rewards = []
-weight_changes = {k:{'stats': [], 'pval': []} for k, _ in current_dqn.named_parameters()}
-weight_diff = []
+epi_rewards, weight_diff = np.array([]), np.array([])
+progress = 0
 
+# for epi in tqdm(range(EPISODES)):
 for epi in range(EPISODES):
-#for epi in tqdm(range(EPISODES)):
     obs = env.reset()
-    obs = np.array([i for i in env.decode(obs)])
+    obs = [i for i in env.decode(obs)]
+    done, total_reward = False, 0
     
-    done = False
-    total_reward = 0
-    
-    ###############################
+    ## exploration strategies
+    # constant epsilon greedy
+    # eps = EPSILON
+    # exponentially decaying epsilon greedy 
+    eps = np.exp(-0.0005 * epi)
+
     while not done:
-        
-        action = epsilon_greedy(current_dqn.forward(torch.from_numpy(obs).float()), EPSILON)
+        state = np.array(obs)
+        action = epsilon_greedy(current_dqn.forward(torch.from_numpy(state).float().to(device)), eps)
         next_state, reward, done, _ = env.step(action)
         next_state = np.array([i for i in env.decode(next_state)])
 
-        print(next_state, reward, done)
+        replay_memory.put([state, action, reward, next_state, done])
+        state = next_state
+        total_reward += reward
 
-        #### reference line 87 #####
+        # minimum standard to train
+        if replay_memory.size() > BATCH_SIZE:
+            training(current_dqn, target_dqn, replay_memory, optimizer_adam, GAMMA, BATCH_SIZE)
 
-        exit()
+        # in gym, if number of state more than 200, terminate action to step 
+        if done:
+            break
 
 
+    for name, param in current_dqn.named_parameters():
+        x = torch.flatten(current_dqn.state_dict()[name]).to(device)
+        y = torch.flatten(target_dqn.state_dict()[name]).to(device)
+        loss = nn.MSELoss()
+        mse = loss(x, y).cpu().numpy()
+        weight_diff = np.append(weight_diff, mse)
 
-    ###############################
+    if epi % TARGET_UPDATE == 0 and epi != 0:
+        target_dqn.load_state_dict(current_dqn.state_dict())
 
+    epi_rewards = np.append(epi_rewards, total_reward)
 
-    # the following code is for logging
-    epi_rewards.append(total_reward)
-
-exit()
+    # display progress
+    if int(epi/EPISODES * 100) >= progress + 1:
+        print('progress: ', progress+1, '%')
+        progress = int(epi/EPISODES*100)
 
 
 print("Check whether model converges within 15000 episodes (in our codes, it successfully converges in 5000 episodes)")
 print("    - Observe the weight changes to make sure that it converges (weight difference decreases).")
 print("    - See the plot and check how fast does it converges.")
 
+## graph visualization
+# weight_diff (current_dqn vs. target_dqn)
 fig, ax = plt.subplots(figsize=(20, 4))
 ax.plot(weight_diff, label='weight difference (MSE)')
 ax.legend(fontsize=20)
-fig.text(0.75, 0.2, 'This is an example',
-         fontsize=80, color='gray',
-         ha='right', va='bottom', alpha=0.5)
+plt.savefig('Weight Difference(MSE).png')
 
-print("The variance of rewards.")
-
-var = []
-wsize = 100 # window size
+# variance of rewards per epi
+var = np.array([])
+# window size: # of size for compute variance
+wsize = 100
 for i in range(len(epi_rewards) - wsize):
-    var.append(np.var(epi_rewards[i:i + wsize]) / wsize)
-   
+    var = np.append(var, np.var(epi_rewards[i:i + wsize]) / wsize)   
 fig, ax = plt.subplots(figsize=(20, 4))
 ax.plot(var, label='variance, wsize={}'.format(wsize))
 ax.legend(fontsize=20)
-fig.text(0.75, 0.15, 'This is an example',
-         fontsize=80, color='gray',
-         ha='right', va='bottom', alpha=0.5)
+plt.savefig('Variance of rewards.png'.format(wsize))
 
-plt.savefig('var_w={}.png'.format(wsize))
-
+# rewards per epi
 torch.save(current_dqn.state_dict(), '001-20_model.pth')
 plt.figure(figsize=(20,4))
 plt.plot(epi_rewards)
-plt.savefig('001-20.png')
+plt.savefig('epi_rewards.png')
 
 
 # We are going to examine... 
@@ -212,10 +229,9 @@ plt.savefig('001-20.png')
 # the last episode below the threshold (small is better)
 
 # Below is an example of evaluation
-## TA will change the values of X and threshold for evaluation
+## X: after conversion
 X = -10000
 threshold = -200  
-
 
 avg_reward = np.mean(epi_rewards[X:-1])
 print("Average reward (after convergence) is ", avg_reward)
