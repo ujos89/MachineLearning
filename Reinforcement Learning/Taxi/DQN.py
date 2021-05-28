@@ -18,15 +18,12 @@ from collections import deque
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm.notebook import tqdm
+import pandas as pd
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
-from scipy.stats import ks_2samp
-from IPython.display import Image
 
 torch.manual_seed(42)  # we fix the random seed for the same wieght initialization
 
@@ -37,7 +34,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 GAMMA=0.9
 EPISODES = 15000
 MEMORY_SIZE = 50000
-
 # Optimize the following parameters:
 EPSILON=1.0
 
@@ -68,19 +64,22 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(in_features=4, out_features=50)
         self.fc2 = nn.Linear(in_features=50, out_features=50)
-        self.fc3 = nn.Linear(in_features=50, out_features=6)
+        self.fc3 = nn.Linear(in_features=50, out_features=50)
+        self.fc4 = nn.Linear(in_features=50, out_features=6)
         
         # He initialization for the weights (with ReLU)
         nn.init.kaiming_normal_(self.fc1.weight, nonlinearity='relu')
         nn.init.kaiming_normal_(self.fc2.weight, nonlinearity='relu')
         nn.init.kaiming_normal_(self.fc3.weight, nonlinearity='relu')
+        nn.init.kaiming_normal_(self.fc4.weight, nonlinearity='relu')
         
     def forward(self, x):
         x = x.view(-1, 4)
 
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        x = self.fc4(x)
         
         return x
     
@@ -115,8 +114,8 @@ class Memory():
     
     
 def epsilon_greedy(q_function, epsilon):
-    if random.random() > epsilon: # greedy
-        return np.argmax(q_function.detach().numpy())
+    if random.random() > epsilon:
+        return np.argmax(q_function.detach().cpu().numpy())
     else:
         return random.randint(0, 5)
 
@@ -156,6 +155,11 @@ for epi in range(EPISODES):
     # eps = EPSILON
     # exponentially decaying epsilon greedy 
     eps = np.exp(-0.0005 * epi)
+    # linearly decaying epsilion greedy
+    # if epi > 5000:
+    #     eps = 1
+    # else:
+    #     eps = -1/5000*epi + 1
 
     while not done:
         state = np.array(obs)
@@ -189,8 +193,8 @@ for epi in range(EPISODES):
     epi_rewards = np.append(epi_rewards, total_reward)
 
     # display progress
-    if int(epi/EPISODES * 100) >= progress + 1:
-        print('progress: ', progress+1, '%')
+    if int(epi/EPISODES * 100) >= progress+5 :
+        print('progress: ', progress+5, '%')
         progress = int(epi/EPISODES*100)
 
 
@@ -203,7 +207,7 @@ print("    - See the plot and check how fast does it converges.")
 fig, ax = plt.subplots(figsize=(20, 4))
 ax.plot(weight_diff, label='weight difference (MSE)')
 ax.legend(fontsize=20)
-plt.savefig('Weight Difference(MSE).png')
+plt.savefig('./Experiment/Weight Difference(MSE).png')
 
 # variance of rewards per epi
 var = np.array([])
@@ -214,24 +218,28 @@ for i in range(len(epi_rewards) - wsize):
 fig, ax = plt.subplots(figsize=(20, 4))
 ax.plot(var, label='variance, wsize={}'.format(wsize))
 ax.legend(fontsize=20)
-plt.savefig('Variance of rewards.png'.format(wsize))
+plt.savefig('./Experiment/Variance of rewards.png'.format(wsize))
 
 # rewards per epi
-torch.save(current_dqn.state_dict(), '001-20_model.pth')
 plt.figure(figsize=(20,4))
 plt.plot(epi_rewards)
-plt.savefig('epi_rewards.png')
+plt.savefig('./Experiment/epi_rewards.png')
 
+# save model
+torch.save(current_dqn.state_dict(), './Experiment/_model.pth')
+
+# save epi_reward
+df = pd.DataFrame(epi_rewards)
+df.to_csv('./Experiment/epi_rewards.csv', index=False)
 
 # We are going to examine... 
 # average reward after convergence (larger is better)
 # variance after convergence (smaller is better)
 # the last episode below the threshold (small is better)
 
-# Below is an example of evaluation
-## X: after conversion
+# X: last number of conversion
 X = -10000
-threshold = -200  
+threshold = -220  
 
 avg_reward = np.mean(epi_rewards[X:-1])
 print("Average reward (after convergence) is ", avg_reward)
