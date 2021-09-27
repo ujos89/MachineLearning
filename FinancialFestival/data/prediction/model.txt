@@ -1,2 +1,0 @@
-model = ['fo', 'lr', 'fo', 'lr', 'fo', 'fo', 'tr', 'fo', 'fo', 'fo', 'lr', 'fo', 'fo', 'fo', 'tr', 'fo', 'fo', 'lr', 'fo', 'lr', 'fo', 'fo', 'lr', 'fo', 'fo', 'fo', 'tr', 'fo', 'fo', 'tr', 'lr', 'tr', 'fo', 'lr', 'fo', 'tr', 'fo', 'fo', 'lr', 'lr', 'tr', 'lr', 'fo', 'fo', 'fo', 'lr', 'fo', 'fo']
-
